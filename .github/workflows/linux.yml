@@ -1,5 +1,6 @@
 name: 'C++ CI'
 
+# Запускаем workflow при пуше в ветки lab1 или feature/github_actions
 on:
   push:
     branches:
@@ -8,27 +9,40 @@ on:
 
 jobs:
   build_ubuntu:
+    # Запускаем job на ubuntu-latest
     runs-on: ubuntu-latest
+    # Предоставляем разрешения на запись во все ресурсы
     permissions: write-all
     steps:
+      # Клонируем репозиторий, включая submodules
       - uses: actions/checkout@v3
         with:
           submodules: true
+      # Устанавливаем libboost-test-dev
       - run: sudo apt-get update && sudo apt-get install libboost-test-dev -y
+      # Конфигурируем проект с помощью CMake, используя номер запуска для PATCH_VERSION
       - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
+      # Строим проект с помощью CMake
       - run: cmake --build .
+      # Запускаем тесты
       - run: cmake --build . --target test
+      # Создаем пакет
       - run: cmake --build . --target package
+      # Создаем релиз для Ubuntu
       - name: Create Release (Ubuntu)
         id: create_release_ubuntu
+        # Используем action для создания релиза
         uses: actions/create-release@v1
+        # Используем GITHUB_TOKEN для аутентификации
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Устанавливаем tag_name, release_name и другие параметры
         with:
-          tag_name: v${{ github.run_number }}
+          tag_name: v${{ github.run_number }} # Используем номер запуска для тега
           release_name: Release ${{ github.run_number }} (Ubuntu)
-          draft: false
-          prerelease: false
+          draft: false # Не публикуем релиз в черновике
+          prerelease: false # Не публикуем как предварительную версию
+      # Загружаем релизный ассет для Ubuntu
       - name: Upload Release Asset (Ubuntu)
         id: upload-release-asset-ubuntu
         uses: actions/upload-release-asset@v1
@@ -39,4 +53,4 @@ jobs:
           asset_path: ./helloworld-0.0.${{ github.run_number }}-Linux.deb
           asset_name: helloworld-0.0.${{ github.run_number }}-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
-          allowUpdates: true
+          allowUpdates: true # Разрешаем обновление уже загруженного ассета

@@ -1,33 +1,48 @@
 name: 'C++ CI'
 
+# Запускаем workflow при пуше в ветки lab1 или feature/github_actions
 on:
   push:
     branches:
       - lab1
       - feature/github_actions
+
 jobs:
   build_macos:
+    # Запускаем job на macos-latest
     runs-on: macos-latest
+    # Предоставляем разрешения на запись во все ресурсы
     permissions: write-all
     steps:
+      # Клонируем репозиторий, включая submodules
       - uses: actions/checkout@v3
         with:
           submodules: true
+      # Устанавливаем boost с помощью Homebrew
       - run: brew install boost
+      # Конфигурируем проект с помощью CMake, используя номер запуска для PATCH_VERSION
       - run: cmake . -DPATCH_VERSION=${{ github.run_number }}
+      # Строим проект с помощью CMake
       - run: cmake --build .
+      # Запускаем тесты
       - run: cmake --build . --target test
+      # Создаем пакет
       - run: cmake --build . --target package
+      # Создаем релиз для MacOS
       - name: Create Release (MacOS)
         id: create_release_macos
+        # Используем action для создания релиза
         uses: actions/create-release@v1
+        # Используем GITHUB_TOKEN для аутентификации
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Устанавливаем tag_name, release_name и другие параметры
         with:
-          tag_name: ${{ github.run_number }}
+          tag_name: ${{ github.run_number }} # Используем номер запуска для тега
           release_name: Release ${{ github.run_number }} (MacOS)
-          draft: false
-          prerelease: false
+          draft: false # Не публикуем релиз в черновике
+          prerelease: false # Не публикуем как предварительную версию
+      # Загружаем релизный ассет для MacOS
       - name: Upload Release Asset (MacOS)
         id: upload-release-asset-macos
         uses: actions/upload-release-asset@v1
@@ -38,4 +53,3 @@ jobs:
           asset_path: ./helloworld-0.0.${{ github.run_number }}-Darwin.zip
           asset_name: helloworld-0.0.${{ github.run_number }}-Darwin.zip
           asset_content_type: application/zip
-
