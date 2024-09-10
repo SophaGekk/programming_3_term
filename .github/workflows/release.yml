@@ -71,4 +71,4 @@ jobs:
           asset_path: ./helloworld-0.0.${{ github.run_number }}-Darwin.zip
           asset_name: helloworld-0.0.${{ github.run_number }}-Darwin.zip
           asset_content_type: application/zip
-          allowUpdates: true
+          # allowUpdates: true
