@@ -14,6 +14,8 @@ set(CPACK_PROJECT_NAME coollab2)
 # Установка пакета DEB для Linux
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CPACK_GENERATOR DEB) # Настраивает CPack для создания пакетов DEB (Linux).
+    # Укажите зависимости пакета
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgtk-3-dev libstdc++6-dev")
 endif()
 # Установка пакета ZIP для macOS
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -24,7 +26,7 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 
-# set(CPACK_PACKAGE_CONTACT example@example.com)
+set(CPACK_PACKAGE_CONTACT example@example.com)
 
 include(CPack)
 
