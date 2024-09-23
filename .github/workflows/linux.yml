@@ -4,7 +4,7 @@ name: 'C++ CI'
 on:
   push:
     branches:
-      - lab1
+      - lab2
       - feature/github_actions
 
 jobs:
