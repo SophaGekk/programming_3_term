@@ -4,7 +4,7 @@ set(PROJECT_VESRION 0.0.${PATCH_VERSION})
 # Создает переменные PATCH_VERSION и PROJECT_VESRION для управления версиями проекта.
 
 project(coollab2 VERSION ${PROJECT_VESRION}) # Определяет имя проекта coollab2 и использует переменную PROJECT_VESRION для указания версии проекта.
-add_executable(coollab2 main.cpp cool.cpp cool.h)
+# add_executable(coollab2 main.cpp cool.cpp cool.h)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CXX_STANDARD_REQUIRED ON)

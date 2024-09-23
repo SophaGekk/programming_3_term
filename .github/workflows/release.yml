@@ -9,7 +9,6 @@ on:
       - feature/github_actions
 
 jobs:
-  
   build_ubuntu:
     # Запускаем job на ubuntu-latest
     runs-on: ubuntu-latest
