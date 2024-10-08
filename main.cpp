@@ -1,7 +1,6 @@
 #include <iostream>
 
 // Структура для последовательного контейнера (массив)
-// template <typename T>
 struct SequentialContainer {
     int* data; // Указатель на массив для хранения элементов
     int size; // Текущее количество элементов
@@ -50,6 +49,17 @@ struct SequentialContainer {
         data = newData; // Перенаправляем указатель на новую память
     }
 
+    // Функция для уменьшения емкости до фактического размера
+    void shrinkToFit() {
+        int* newData = new int[size]; // Выделяем новую память по размеру фактических данных
+        for (int i = 0; i < size; ++i) {
+            newData[i] = data[i]; // Копируем данные
+        }
+        delete[] data; // Освобождаем старую память
+        data = newData; // Перенаправляем указатель
+        capacity = size; // Обновляем емкость
+    }
+
     // Добавление элемента в конец
     void push_back(int value) {
         if (size == capacity) {
@@ -86,18 +96,21 @@ struct SequentialContainer {
         ++size;
     }
 
+    // Удаление элемента по индексу 
+    void erase(int index) { 
+        if (index < 0 || index >= size) { 
+            throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса 
+        } 
+        for (int i = index; i < size - 1; ++i) { 
+            data[i] = data[i + 1]; // Сдвинаем элементы влево 
+        } 
+        --size; // Уменьшаем размер 
 
-    // Удаление элемента по индексу
-    void erase(int index) {
-    if (index < 0 || index >= size) {
-        throw std::out_of_range("Индекс вне диапазона"); // Исключение для недопустимого индекса
+        // Проверяем, нужно ли уменьшить емкость
+        if (size < capacity / 2 && capacity > 1) { 
+            shrinkToFit(); // Уменьшаем емкость до необходимого размера
+        }
     }
-    for (int i = index; i < size - 1; ++i) {
-        data[i] = data[i + 1];// Сдвинаем элементы влево
-    }
-    --size;// Уменьшаем размер
-    }
-
     // Получение размера контейнера
     int getSize() const {
         return size; // Возвращаем текущее количество элементов
@@ -176,6 +189,7 @@ struct SequentialContainer {
 
 
 // Класс для спискового контейнера (связь через указатели)
+// Двусвязный список, где каждый элемент хранит ссылку на предыдущий и следующий
 class DoubleLinkedList {
 private:
     struct Node {
@@ -386,6 +400,7 @@ public:
 };
 
 // Однонаправленный списковый контейнер
+// Односвязный список, где каждый элемент хранит ссылку только на следующий
 class SinglyLinkedList {
 private:
     struct Node {
@@ -632,20 +647,21 @@ void demonstrateMoveSemantics(const std::string& name) {
     conte.push_back(1);
     std::cout << "conte не пуст: ";
     conte.print();
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
     Type moved_container = std::move(conte); // Перемещение контейнера
+    std::cout << "Содержимое moved_container после перемещения: ";
     moved_container.print();
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
     std::cout << "Содержимое conte после перемещения: ";
     conte.print(); // Проверяем содержимое первого контейнера (должен быть пустым)
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
     if (conte.getSize() == 0) {
-        std::cout << "conte успешно перемещен и теперь пуст." << std::endl;
+        std::cout << "conte успешно перемещен и теперь он не существует." << std::endl;
     } else {
-        std::cout << "Ошибка: conte не пуст!" << std::endl;
+        std::cout << "Ошибка: conte существует!" << std::endl;
     }
     std::cout << std::endl;
 
@@ -655,20 +671,21 @@ void demonstrateMoveSemantics(const std::string& name) {
     movements_conteiner.push_back(2);
     std::cout << "movements_conteiner не пуст: ";
     movements_conteiner.print();
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
     movements_conteiner = std::move(moved_container); // Перемещение контейнера
+    std::cout << "Содержимое movements_conteiner после перемещения: ";
     movements_conteiner.print();
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
     std::cout << "Содержимое moved_container после перемещения: ";
     moved_container.print(); // Проверяем содержимое первого контейнера (должен быть пустым)
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
     if (moved_container.getSize() == 0) {
-        std::cout << "moved_container успешно перемещен и теперь пуст." << std::endl;
+        std::cout << "moved_container успешно перемещен и не существует." << std::endl;
     } else {
-        std::cout << "Ошибка: moved_container не пуст!" << std::endl;
+        std::cout << "Ошибка: moved_container существует!" << std::endl;
     }
     std::cout << std::endl;
 
@@ -689,7 +706,8 @@ void demonstrateIterator(const std::string& name)
         // std::cout << *iter << " ";
         std::cout << iter.get()<< " ";
     }
-    std::cout << std::endl;    
+    std::cout << std::endl; 
+    std::cout << std::endl;   
     
 
 }
