@@ -1,11 +1,11 @@
 name: 'C++ CI'
 
-# Запускаем workflow при пуше в ветки lab1 или feature/github_actions
+# Запускаем workflow при пуше в ветки lab4 или feature/github_actions
 on: 
   # событие запускаем
   push:
     branches:
-      - lab3
+      - lab4
       - feature/github_actions
 
 jobs:
@@ -44,8 +44,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release_windows.outputs.upload_url }}
-          asset_path: ./laba3-0.0.${{ github.run_number }}-win64.zip
-          asset_name: laba3-0.0.${{ github.run_number }}-win64.zip
+          asset_path: ./lab4-0.0.${{ github.run_number }}-win64.zip
+          asset_name: lab4-0.0.${{ github.run_number }}-win64.zip
           asset_content_type: application/zip
   
   build_ubuntu:
@@ -86,8 +86,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release_ubuntu.outputs.upload_url }}
-          asset_path: ./laba3-0.0.${{ github.run_number }}-Linux.deb
-          asset_name: laba3-0.0.${{ github.run_number }}-Linux.deb
+          asset_path: ./lab4-0.0.${{ github.run_number }}-Linux.deb
+          asset_name: lab4-0.0.${{ github.run_number }}-Linux.deb
           asset_content_type: application/vnd.debian.binary-package
           allowUpdates: true # Разрешаем обновление уже загруженного ассета
 
