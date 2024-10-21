@@ -1,59 +1,86 @@
 #include <iostream>
 #include <map>
-#include <memory>
-#include <vector>
-#include <memory_resource>
-#include <array>
-#include <list>
 
+// Шаблонный класс-аллокатор, реализующий выделение памяти блоками заданного размера
+// T - тип данных, для которых используется аллокатор
+// BlockSize - размер блока (по умолчанию 10)
 template <class T, size_t BlockSize = 10>
-struct allocator_с11 {
+struct allocator_с11 {// Тип данных, который может хранить аллокатор
     using value_type = T;
+    // Указатель на пул памяти (начало блока)
     void* pool;
+
+    // Конструктор аллокатора
+    // Инициализирует пул памяти, выделяя блок размера BlockSize * sizeof(T)
+    // current_block_size - текущий размер блока
+    // allocated_elements - количество выделенных элементов
+    // block - указатель на начало блока
     allocator_с11 () : current_block_size(BlockSize), allocated_elements(0),
         block(static_cast<T*>(std::malloc(BlockSize * sizeof(T)))) {
         if (!block)
-            throw std::bad_alloc();
+            throw std::bad_alloc();  // Если выделение памяти не удалось, выбрасываем исключение std::bad_alloc
     }
-
+    
+    // Деструктор аллокатора
+    // Освобождает память, выделенную для пула
     ~allocator_с11() {
         std::free(block);
     }
-
+    
+    // Конструктор копирования (запрещен, так как аллокатор не должен копироваться)
     template <class U> allocator_с11 (const allocator_с11<U>&) noexcept {}
+
+    // Выделение памяти
+    // Выделяет n элементов типа T 
+    // Возвращает указатель на выделенную память (использует ::operator new)
     T* allocate (std::size_t n) {
         return static_cast<T*>(::operator new(n*sizeof(T)));
     }
+    
+
+    // Освобождение памяти
+    // Освобождает память, выделенную по указателю p (использует ::operator delete)
     void deallocate (T* p, std::size_t n) { ::operator delete(p); }
+
+    // Метод rebind, который позволяет создавать аллокатор для другого типа данных
     template< class U >
     struct rebind {
         typedef allocator_с11<U> other;
     };
     
     private:
-        size_t current_block_size;
-        size_t allocated_elements;
-        T * block;
+        size_t current_block_size; //текущий размер блока
+        size_t allocated_elements; //количество выделенных элементов
+        T * block; //указатель на начало блока
 };
 
+// Оператор == для сравнения аллокаторов (всегда возвращает true)
 template <class T, class U>
 constexpr bool operator== (const allocator_с11<T>& a1, const allocator_с11<U>& a2) noexcept {
     return true;
 }
+
+// Оператор != для сравнения аллокаторов (всегда возвращает false)
 template <class T, class U>
 constexpr bool operator!= (const allocator_с11<T>& a1, const allocator_с11<U>& a2) noexcept {
     return false;
 }
 
-// Контейнер, ограниченный по размеру, с использованием MyAllocator
+
+// Шаблонный класс LimitedContainer
+// T - тип данных, которые хранит контейнер
+// MaxSize - максимальное количество элементов в контейнере
+// Allocator - тип аллокатора (по умолчанию allocator_с11<T>)
 template <typename T, size_t MaxSize, typename Allocator = allocator_с11<T>>
 class LimitedContainer {
 private:
-    Allocator alloc;
-    T* data;
-    size_t size;
+    Allocator alloc; // Экземпляр аллокатора
+    T* data; // Указатель на данные (динамический массив)
+    size_t size; // Текущий размер контейнера
 
 public:
+    // Конструктор по умолчанию
+    // Инициализирует данные, размер и аллокатор
     LimitedContainer() : alloc(), data(nullptr), size(0) {}
     
     ~LimitedContainer() {
@@ -62,20 +89,26 @@ public:
         }
     }
 
-    // Добавление элемента
+    // Добавляет элемент в конец контейнера
+    // Если контейнер уже заполнен, выбрасывается исключение std::runtime_error
+    
     void push_back(const T& value) { 
+        // Проверка на заполненность контейнера
         if (size == MaxSize) { 
             throw std::runtime_error("Контейнер уже заполнен"); 
         } 
+        // Если контейнер пустой, выделяем память для данных
         if (size == 0) { 
             data = alloc.allocate(MaxSize); 
         } 
-        // Используем placement new для создания нового std::pair
+        // Используем placement new для создания нового элемента типа T 
         new (&data[size]) T(value); 
+        // Увеличиваем размер контейнера
         ++size; 
     }
 
-    // Получение элемента по индексу
+    // Возвращает ссылку на элемент по заданному индексу
+    // Если индекс недействителен, выбрасывается исключение std::out_of_range
     const T& operator[](size_t index) const {
         if (index >= size) {
             throw std::out_of_range("Индекс вне допустимого диапазона");
@@ -83,12 +116,12 @@ public:
         return data[index];
     }
 
-    // Получение размера
+    // Возвращает текущий размер контейнера
     size_t getSize() const {
         return size;
     }
 
-    // Проверка на пустоту
+    // Проверяет, пуст ли контейнер
     bool empty() const {
         return size == 0;
     }
@@ -113,19 +146,11 @@ private:
     Allocator alloc;
 
 public:
-    // Конструктор без аллокатора
+    // Инициализирует данные, размер и аллокатор
     DoubleLinkedList() : head(nullptr), tail(nullptr), size(0), alloc() {}
    
     // Деструктор
     ~DoubleLinkedList() { clear(); }
-
-    // Перемещающий конструктор
-    DoubleLinkedList(DoubleLinkedList&& other) noexcept
-    : head(std::move(other.head)), tail(std::move(other.tail)), size(other.size), alloc(std::move(other.alloc)) {
-        other.head = nullptr;
-        other.tail = nullptr;
-        other.size = 0;
-    }
 
     // Добавление элемента в конец
     void push_back(const T& value) {
@@ -159,8 +184,6 @@ public:
         Node* newNode = static_cast<Node*>(alloc.allocate(sizeof(Node))); 
         new (newNode) Node(value);
 
-        // Node* newNode = alloc.allocate(1);
-        // alloc(newNode, value);
         Node* current = head;
         for (size_t i = 0; i < index; ++i) {
             current = current->next;
