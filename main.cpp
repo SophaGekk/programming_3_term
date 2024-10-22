@@ -128,203 +128,203 @@ public:
     }
 };
 
-// Класс для спискового контейнера (связь через указатели)
-// Двусвязный список, где каждый элемент хранит ссылку на предыдущий и следующий
-template <typename T, typename Allocator = allocator_с11<T>>
-class DoubleLinkedList {
-private:
-    struct Node {
-        T value;
-        Node* next;
-        Node* prev;
+// // Класс для спискового контейнера (связь через указатели)
+// // Двусвязный список, где каждый элемент хранит ссылку на предыдущий и следующий
+// template <typename T, typename Allocator = allocator_с11<T>>
+// class DoubleLinkedList {
+// private:
+//     struct Node {
+//         T value;
+//         Node* next;
+//         Node* prev;
 
-        Node(const T& value) : value(value), next(nullptr), prev(nullptr) {}
-    };
+//         Node(const T& value) : value(value), next(nullptr), prev(nullptr) {}
+//     };
 
-    Node* head;
-    Node* tail;
-    size_t size;
-    Allocator alloc;
+//     Node* head;
+//     Node* tail;
+//     size_t size;
+//     Allocator alloc;
 
-public:
-    // Инициализирует данные, размер и аллокатор
-    DoubleLinkedList() : head(nullptr), tail(nullptr), size(0), alloc() {}
+// public:
+//     // Инициализирует данные, размер и аллокатор
+//     DoubleLinkedList() : head(nullptr), tail(nullptr), size(0), alloc() {}
    
-    // Деструктор
-    ~DoubleLinkedList() { clear(); }
+//     // Деструктор
+//     ~DoubleLinkedList() { clear(); }
 
-    // Добавление элемента в конец
-    void push_back(const T& value) {
-        // Node* newNode = static_cast<Node*>(alloc.allocate(sizeof(Node))); 
-        // new (newNode) Node(value);
-        typename Allocator::template rebind<Node>::other nodeAlloc;
-        Node* newNode = nodeAlloc.allocate(1);
-        new(newNode) Node(value); // Используем placement new для инициализации узла
+//     // Добавление элемента в конец
+//     void push_back(const T& value) {
+//         // Node* newNode = static_cast<Node*>(alloc.allocate(sizeof(Node))); 
+//         // new (newNode) Node(value);
+//         typename Allocator::template rebind<Node>::other nodeAlloc;
+//         Node* newNode = nodeAlloc.allocate(1);
+//         new(newNode) Node(value); // Используем placement new для инициализации узла
 
-        if (head == nullptr) {
-            head = newNode;
-            tail = newNode;
-        } else {
-            tail->next = newNode;
-            newNode->prev = tail;
-            tail = newNode;
-        }
-        ++size;
-    }
+//         if (head == nullptr) {
+//             head = newNode;
+//             tail = newNode;
+//         } else {
+//             tail->next = newNode;
+//             newNode->prev = tail;
+//             tail = newNode;
+//         }
+//         ++size;
+//     }
 
-    // Добавление элемента по индексу
-    void insert(size_t index, const T& value) {
-        if (index < 0 || index > size) {
-            throw std::out_of_range("Индекс вне допустимого диапазона");
-        }
-        if (index == size) {
-            push_back(value);
-            return;
-        }
+//     // Добавление элемента по индексу
+//     void insert(size_t index, const T& value) {
+//         if (index < 0 || index > size) {
+//             throw std::out_of_range("Индекс вне допустимого диапазона");
+//         }
+//         if (index == size) {
+//             push_back(value);
+//             return;
+//         }
         
-        Node* newNode = static_cast<Node*>(alloc.allocate(sizeof(Node))); 
-        new (newNode) Node(value);
+//         Node* newNode = static_cast<Node*>(alloc.allocate(sizeof(Node))); 
+//         new (newNode) Node(value);
 
-        Node* current = head;
-        for (size_t i = 0; i < index; ++i) {
-            current = current->next;
-        }
+//         Node* current = head;
+//         for (size_t i = 0; i < index; ++i) {
+//             current = current->next;
+//         }
 
-        newNode->next = current;
-        newNode->prev = current->prev;
-        current->prev->next = newNode;
-        current->prev = newNode;
+//         newNode->next = current;
+//         newNode->prev = current->prev;
+//         current->prev->next = newNode;
+//         current->prev = newNode;
 
-        ++size;
-    }
+//         ++size;
+//     }
 
-    // Удаление элемента по индексу
-    void erase(size_t index) {
-        if (index < 0 || index >= size) {
-            throw std::out_of_range("Индекс вне допустимого диапазона");
-        }
-        Node* current = head;
-        for (size_t i = 0; i < index; ++i) {
-            current = current->next;
-        }
+//     // Удаление элемента по индексу
+//     void erase(size_t index) {
+//         if (index < 0 || index >= size) {
+//             throw std::out_of_range("Индекс вне допустимого диапазона");
+//         }
+//         Node* current = head;
+//         for (size_t i = 0; i < index; ++i) {
+//             current = current->next;
+//         }
 
-        if (current->prev) {
-            current->prev->next = current->next;
-        } else {
-            head = current->next; // Удаление головного элемента
-        }
+//         if (current->prev) {
+//             current->prev->next = current->next;
+//         } else {
+//             head = current->next; // Удаление головного элемента
+//         }
 
-        if (current->next) {
-            current->next->prev = current->prev;
-        } else {
-            tail = current->prev; // Удаление хвостового элемента
-        }
+//         if (current->next) {
+//             current->next->prev = current->prev;
+//         } else {
+//             tail = current->prev; // Удаление хвостового элемента
+//         }
 
-        // alloc.destroy(current);
-        alloc.deallocate(current, 1);
-        --size;
-    }
+//         // alloc.destroy(current);
+//         alloc.deallocate(current, 1);
+//         --size;
+//     }
 
-    // Получение размера контейнера
-    size_t getSize() const {
-        return size;
-    }
+//     // Получение размера контейнера
+//     size_t getSize() const {
+//         return size;
+//     }
 
-    // Вывод содержимого контейнера
-    void print() const {
-        Node* current = head;
-        while (current != nullptr) {
-            std::cout << current->value << " ";
-            current = current->next;
-        }
-        std::cout << std::endl;
-    }
+//     // Вывод содержимого контейнера
+//     void print() const {
+//         Node* current = head;
+//         while (current != nullptr) {
+//             std::cout << current->value << " ";
+//             current = current->next;
+//         }
+//         std::cout << std::endl;
+//     }
 
-    // Оператор [] для доступа к элементам по индексу
-    T& operator[](size_t index) {
-        if (index < 0 || index >= size) {
-            throw std::out_of_range("Индекс вне диапазона");
-        }
-        Node* current = head;
-        for (size_t i = 0; i < index; ++i) {
-            current = current->next;
-        }
-        return current->value;
-    }
+//     // Оператор [] для доступа к элементам по индексу
+//     T& operator[](size_t index) {
+//         if (index < 0 || index >= size) {
+//             throw std::out_of_range("Индекс вне диапазона");
+//         }
+//         Node* current = head;
+//         for (size_t i = 0; i < index; ++i) {
+//             current = current->next;
+//         }
+//         return current->value;
+//     }
 
-    // Структура итератора для DoubleLinkedList
-    struct Iterator {
-        Node* ptr;
-        // Конструктор
-        Iterator(Node* ptr) : ptr(ptr) {}
+//     // Структура итератора для DoubleLinkedList
+//     struct Iterator {
+//         Node* ptr;
+//         // Конструктор
+//         Iterator(Node* ptr) : ptr(ptr) {}
 
-        // Оператор разыменования
-        T& operator*() {
-            if (ptr == nullptr) {
-                throw std::out_of_range("Индекс вне диапазона");
-            }
-            return ptr->value;
-        }
+//         // Оператор разыменования
+//         T& operator*() {
+//             if (ptr == nullptr) {
+//                 throw std::out_of_range("Индекс вне диапазона");
+//             }
+//             return ptr->value;
+//         }
 
-        // Оператор сравнения (для проверки конца итерации)
-        bool operator!=(const Iterator& other) {
-            return ptr != other.ptr;
-        }
+//         // Оператор сравнения (для проверки конца итерации)
+//         bool operator!=(const Iterator& other) {
+//             return ptr != other.ptr;
+//         }
 
-        // Перемещение итератора на следующий элемент
-        Iterator& operator++() {
-            ptr = ptr->next;
-            return *this;
-        }
+//         // Перемещение итератора на следующий элемент
+//         Iterator& operator++() {
+//             ptr = ptr->next;
+//             return *this;
+//         }
 
-        // Конструктор перемещения
-        Iterator(Iterator&& other) noexcept : ptr(std::move(other.ptr)) {
-            other.ptr = nullptr;
-        }
+//         // Конструктор перемещения
+//         Iterator(Iterator&& other) noexcept : ptr(std::move(other.ptr)) {
+//             other.ptr = nullptr;
+//         }
 
-        // Оператор присваивания перемещения
-        Iterator& operator=(Iterator&& other) noexcept {
-            if (this != &other) {
-                ptr = std::move(other.ptr);
-                // alloc = std::move(other.alloc);
-                other.ptr = nullptr;
-            }
-            return *this;
-        }
+//         // Оператор присваивания перемещения
+//         Iterator& operator=(Iterator&& other) noexcept {
+//             if (this != &other) {
+//                 ptr = std::move(other.ptr);
+//                 // alloc = std::move(other.alloc);
+//                 other.ptr = nullptr;
+//             }
+//             return *this;
+//         }
 
-        T& get() {
-            if (ptr == nullptr) {
-                throw std::out_of_range("Индекс вне диапазона");
-            }
-            return ptr->value;
-        }
-    };
+//         T& get() {
+//             if (ptr == nullptr) {
+//                 throw std::out_of_range("Индекс вне диапазона");
+//             }
+//             return ptr->value;
+//         }
+//     };
 
-    // Возвращает итератор на начало контейнера
-    Iterator begin() {
-        return Iterator(head);
-    }
+//     // Возвращает итератор на начало контейнера
+//     Iterator begin() {
+//         return Iterator(head);
+//     }
 
-    // Возвращает итератор на конец контейнера
-    Iterator end() {
-        return Iterator(nullptr);
-    }
+//     // Возвращает итератор на конец контейнера
+//     Iterator end() {
+//         return Iterator(nullptr);
+//     }
 
-    // Очистка контейнера
-    void clear() {
-        Node* current = head;
-        while (current != nullptr) {
-            Node* next = current->next;
-            delete current;
-            current = next;
-        }
-    }
+//     // Очистка контейнера
+//     void clear() {
+//         Node* current = head;
+//         while (current != nullptr) {
+//             Node* next = current->next;
+//             delete current;
+//             current = next;
+//         }
+//     }
 
-    // Проверка на пустоту
-    bool empty() const {
-        return size == 0;
-    }
-};
+//     // Проверка на пустоту
+//     bool empty() const {
+//         return size == 0;
+//     }
+// };
 
 // Функция для вычисления факториала
 int factorial(int n) {
@@ -379,34 +379,34 @@ int main() {
     }
     std::cout << std::endl;
 
-    DoubleLinkedList<int> list1;
-    // Добавляем элементы в список
-    for(int i = 0; i < 10; ++i)
-    {
-        list1.push_back(i);
-    }
-    // Выводим элементы списка
+    // DoubleLinkedList<int> list1;
+    // // Добавляем элементы в список
+    // for(int i = 0; i < 10; ++i)
+    // {
+    //     list1.push_back(i);
+    // }
+    // // Выводим элементы списка
    
-    std::cout << "List1: ";
-    for (const auto& value : list1) {
-        std::cout << value << " ";
-    }
-    std::cout << std::endl;
+    // std::cout << "List1: ";
+    // for (const auto& value : list1) {
+    //     std::cout << value << " ";
+    // }
+    // std::cout << std::endl;
 
-    // Создаем список с использованием `allocator_с11`
-    DoubleLinkedList<int,allocator_с11<int>> list;
+    // // Создаем список с использованием `allocator_с11`
+    // DoubleLinkedList<int,allocator_с11<int>> list;
 
-    // Добавляем элементы в список
-    for(int i = 0; i < 10; ++i)
-    {
-        list.push_back(i);
-    }
-    std::cout << "List2: ";
-    // Выводим элементы списка
-    for (auto it = list.begin(); it != list.end(); ++it) {
-        std::cout << *it << " ";
-    }
-    std::cout << std::endl;
+    // // Добавляем элементы в список
+    // for(int i = 0; i < 10; ++i)
+    // {
+    //     list.push_back(i);
+    // }
+    // std::cout << "List2: ";
+    // // Выводим элементы списка
+    // for (auto it = list.begin(); it != list.end(); ++it) {
+    //     std::cout << *it << " ";
+    // }
+    // std::cout << std::endl;
 
     return 0;
 }
