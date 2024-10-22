@@ -69,7 +69,6 @@ constexpr bool operator!= (const allocator_с11<T>& a1, const allocator_с11<U>&
 }
 
 
-// Шаблонный класс LimitedContainer
 // T - тип данных, которые хранит контейнер
 // MaxSize - максимальное количество элементов в контейнере
 // Allocator - тип аллокатора (по умолчанию allocator_с11<T>)
