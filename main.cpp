@@ -69,64 +69,64 @@ constexpr bool operator!= (const allocator_с11<T>& a1, const allocator_с11<U>&
 }
 
 
-// // T - тип данных, которые хранит контейнер
-// // MaxSize - максимальное количество элементов в контейнере
-// // Allocator - тип аллокатора (по умолчанию allocator_с11<T>)
-// template <typename T, size_t MaxSize, typename Allocator = allocator_с11<T>>
-// class LimitedContainer {
-// private:
-//     Allocator alloc; // Экземпляр аллокатора
-//     T* data; // Указатель на данные (динамический массив)
-//     size_t size; // Текущий размер контейнера
+// T - тип данных, которые хранит контейнер
+// MaxSize - максимальное количество элементов в контейнере
+// Allocator - тип аллокатора (по умолчанию allocator_с11<T>)
+template <typename T, size_t MaxSize, typename Allocator = allocator_с11<T>>
+class LimitedContainer {
+private:
+    Allocator alloc; // Экземпляр аллокатора
+    T* data; // Указатель на данные (динамический массив)
+    size_t size; // Текущий размер контейнера
 
-// public:
-//     // Конструктор по умолчанию
-//     // Инициализирует данные, размер и аллокатор
-//     LimitedContainer() : alloc(), data(nullptr), size(0) {}
+public:
+    // Конструктор по умолчанию
+    // Инициализирует данные, размер и аллокатор
+    LimitedContainer() : alloc(), data(nullptr), size(0) {}
     
-//     ~LimitedContainer() {
-//         if (data) {
-//             alloc.deallocate(data, size);
-//         }
-//     }
+    ~LimitedContainer() {
+        if (data) {
+            alloc.deallocate(data, size);
+        }
+    }
 
-//     // Добавляет элемент в конец контейнера
-//     // Если контейнер уже заполнен, выбрасывается исключение std::runtime_error
+    // Добавляет элемент в конец контейнера
+    // Если контейнер уже заполнен, выбрасывается исключение std::runtime_error
     
-//     void push_back(const T& value) { 
-//         // Проверка на заполненность контейнера
-//         if (size == MaxSize) { 
-//             throw std::runtime_error("Контейнер уже заполнен"); 
-//         } 
-//         // Если контейнер пустой, выделяем память для данных
-//         if (size == 0) { 
-//             data = alloc.allocate(MaxSize); 
-//         } 
-//         // Используем placement new для создания нового элемента типа T 
-//         new (&data[size]) T(value); 
-//         // Увеличиваем размер контейнера
-//         ++size; 
-//     }
+    void push_back(const T& value) { 
+        // Проверка на заполненность контейнера
+        if (size == MaxSize) { 
+            throw std::runtime_error("Контейнер уже заполнен"); 
+        } 
+        // Если контейнер пустой, выделяем память для данных
+        if (size == 0) { 
+            data = alloc.allocate(MaxSize); 
+        } 
+        // Используем placement new для создания нового элемента типа T 
+        new (&data[size]) T(value); 
+        // Увеличиваем размер контейнера
+        ++size; 
+    }
 
-//     // Возвращает ссылку на элемент по заданному индексу
-//     // Если индекс недействителен, выбрасывается исключение std::out_of_range
-//     const T& operator[](size_t index) const {
-//         if (index >= size) {
-//             throw std::out_of_range("Индекс вне допустимого диапазона");
-//         }
-//         return data[index];
-//     }
+    // Возвращает ссылку на элемент по заданному индексу
+    // Если индекс недействителен, выбрасывается исключение std::out_of_range
+    const T& operator[](size_t index) const {
+        if (index >= size) {
+            throw std::out_of_range("Индекс вне допустимого диапазона");
+        }
+        return data[index];
+    }
 
-//     // Возвращает текущий размер контейнера
-//     size_t getSize() const {
-//         return size;
-//     }
+    // Возвращает текущий размер контейнера
+    size_t getSize() const {
+        return size;
+    }
 
-//     // Проверяет, пуст ли контейнер
-//     bool empty() const {
-//         return size == 0;
-//     }
-// };
+    // Проверяет, пуст ли контейнер
+    bool empty() const {
+        return size == 0;
+    }
+};
 
 // Класс для спискового контейнера (связь через указатели)
 // Двусвязный список, где каждый элемент хранит ссылку на предыдущий и следующий
@@ -364,20 +364,20 @@ int main() {
     std::cout << std::endl;
 
     
-    // // 3) Создание экземпляра LimitedContainer с новым аллокатором, ограниченным 10 элементами
-    // LimitedContainer<std::pair<const int, int>, 10, allocator_с11<std::pair<const int, int>, 10>> limited_map; 
+    // 3) Создание экземпляра LimitedContainer с новым аллокатором, ограниченным 10 элементами
+    LimitedContainer<std::pair<const int, int>, 10, allocator_с11<std::pair<const int, int>, 10>> limited_map; 
 
-    // // 4) Заполнение 10 элементами
-    // for (int i = 0; i < 10; ++i) {
-    //     limited_map.push_back(std::make_pair(i, factorial(i)));
-    // }
+    // 4) Заполнение 10 элементами
+    for (int i = 0; i < 10; ++i) {
+        limited_map.push_back(std::make_pair(i, factorial(i)));
+    }
 
     
-    // std::cout << "LimitedContainer: ";
-    // for (size_t i = 0; i < limited_map.getSize(); ++i) {
-    //     std::cout << limited_map[i].first << " " << limited_map[i].second << std::endl;
-    // }
-    // std::cout << std::endl;
+    std::cout << "LimitedContainer: ";
+    for (size_t i = 0; i < limited_map.getSize(); ++i) {
+        std::cout << limited_map[i].first << " " << limited_map[i].second << std::endl;
+    }
+    std::cout << std::endl;
 
     DoubleLinkedList<int> list1;
     // Добавляем элементы в список
