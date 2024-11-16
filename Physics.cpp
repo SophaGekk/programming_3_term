@@ -28,67 +28,129 @@ void Physics::update(std::vector<Ball>& balls, std::vector<Dust>& dusts, const s
         collideBalls(balls, dusts);
     }
 }
-
 void Physics::collideBalls(std::vector<Ball>& balls, std::vector<Dust>& dusts) const {
     for (auto a = balls.begin(); a != balls.end(); ++a) {
         for (auto b = std::next(a); b != balls.end(); ++b) {
-            // Проверяем флаги isCollidable перед обработкой столкновения
-            if (!a->getIsCollidable() && !b->getIsCollidable()) {
-                continue; // Оба шара не сталкиваются
-            }
-            const double distanceBetweenCenters2 = distance2(a->getCenter(), b->getCenter());
-            const double collisionDistance = a->getRadius() + b->getRadius();
-            const double collisionDistance2 = collisionDistance * collisionDistance;
-            if (distanceBetweenCenters2 < collisionDistance2) {
-                processCollision(*a, *b, distanceBetweenCenters2);
-                // Создание частиц при столкновении
-                for (int i = 0; i < 7; i++) {
-                    double angle = (i * 2 * M_PI / 7); // Разделяем угол на 7 частей
-                    Velocity particleVelocity(100 * i, angle); // Скорость больше, чем у шара
-                    Dust dust(particleVelocity, a->getCenter(), a->getRadius() / 5, Color(0, 0, 1), 0.15); // Установка скорости и времени жизни
-                    dusts.push_back(dust);
+            if (a->getIsCollidable() && b->getIsCollidable()){
+                const double distanceBetweenCenters2 = distance2(a->getCenter(), b->getCenter());
+                const double collisionDistance = a->getRadius() + b->getRadius();
+                const double collisionDistance2 =
+                    collisionDistance * collisionDistance;
+
+                if (distanceBetweenCenters2 < collisionDistance2) {
+                    processCollision(*a, *b, distanceBetweenCenters2);
+                    for (int i = 0; i < 7; i++) {
+                        double angle = (i * 2 * M_PI / 7); 
+                        Velocity particleVelocity(100 * i, angle); 
+                        Dust dust(particleVelocity, a->getCenter(), a->getRadius() / 5, Color(0, 0, 1), 0.8);
+                        dusts.push_back(dust); 
+                    }
                 }
             }
+            
         }
     }
 }
-int MAX_PARTICLES = 5;
+
 void Physics::collideWithBox(std::vector<Ball>& balls, std::vector<Dust>& dusts) const {
     for (Ball& ball : balls) {
         const Point p = ball.getCenter();
         const double r = ball.getRadius();
-        
         // определяет, находится ли v в диапазоне (lo, hi) (не включая границы)
         auto isOutOfRange = [](double v, double lo, double hi) {
             return v < lo || v > hi;
         };
+
         if (isOutOfRange(p.x, topLeft.x + r, bottomRight.x - r)) {
             Point vector = ball.getVelocity().vector();
             vector.x = -vector.x;
             ball.setVelocity(vector);
-
-            // Создание частиц при столкновении со стеной
-            for (int i = 0; i < 5; i++) {
-                double angle = (i * 2 * M_PI / 5); // Разделяем угол на 5 частей
-                Velocity particleVelocity(800, angle); // Скорость больше, чем у шара
-                Dust dust(particleVelocity, p, r / 5, Color(0, 1, 0), 0.25); // Установка скорости и времени жизни
-                dusts.push_back(dust);
+            if (ball.getIsCollidable())
+            {
+                for (int i = 0; i < 5; i++) {
+                    double angle = (i * 2 * M_PI / 5); 
+                    Velocity particleVelocity(100 * i, angle); 
+                    Dust dust(particleVelocity, p, r / 5, Color(1, 0, 0), 0.05);
+                    dusts.push_back(dust); 
+                }
             }
         } else if (isOutOfRange(p.y, topLeft.y + r, bottomRight.y - r)) {
             Point vector = ball.getVelocity().vector();
             vector.y = -vector.y;
             ball.setVelocity(vector);
-
-            // Создание частиц при столкновении со стеной
-            for (int i = 0; i < 5; i++) {
-                double angle = (i * 2 * M_PI / 5); // Разделяем угол на 5 частей
-                Velocity particleVelocity(800, angle); // Скорость больше, чем у шара
-                Dust dust(particleVelocity, p, r / 5, Color(1, 0, 0), 0.25); // Установка скорости и времени жизни
-                dusts.push_back(dust);
+            if (ball.getIsCollidable()) 
+            {
+                for (int i = 0; i < 5; i++) {
+                    double angle = (i * 2 * M_PI / 5); 
+                    Velocity particleVelocity(100 * i, angle); 
+                    Dust dust(particleVelocity, p, r / 5, Color(0, 1, 0), 0.05);
+                    dusts.push_back(dust); 
+                }
             }
         }
     }
 }
+
+// void Physics::collideBalls(std::vector<Ball>& balls, std::vector<Dust>& dusts) const {
+//     for (auto a = balls.begin(); a != balls.end(); ++a) {
+//         for (auto b = std::next(a); b != balls.end(); ++b) {
+//             // Проверяем флаги isCollidable перед обработкой столкновения
+//             if (!a->getIsCollidable() || !b->getIsCollidable()) {
+//                 continue; // Оба шара не сталкиваются
+//             }
+//             const double distanceBetweenCenters2 = distance2(a->getCenter(), b->getCenter());
+//             const double collisionDistance = a->getRadius() + b->getRadius();
+//             const double collisionDistance2 = collisionDistance * collisionDistance;
+//             if (distanceBetweenCenters2 < collisionDistance2) {
+//                 processCollision(*a, *b, distanceBetweenCenters2);
+//                 // Создание частиц при столкновении
+//                 for (int i = 0; i < 7; i++) {
+//                     double angle = (i * 2 * M_PI / 7); // Разделяем угол на 7 частей
+//                     Velocity particleVelocity(100 * i, angle); // Скорость больше, чем у шара
+//                     Dust dust(particleVelocity, a->getCenter(), a->getRadius() / 5, Color(0, 0, 1), 0.05); // Установка скорости и времени жизни
+//                     dusts.push_back(dust);
+//                 }
+//             }
+//         }
+//     }
+// }
+
+// void Physics::collideWithBox(std::vector<Ball>& balls, std::vector<Dust>& dusts) const {
+//     for (Ball& ball : balls) {
+//         const Point p = ball.getCenter();
+//         const double r = ball.getRadius();
+        
+//         // определяет, находится ли v в диапазоне (lo, hi) (не включая границы)
+//         auto isOutOfRange = [](double v, double lo, double hi) {
+//             return v < lo || v > hi;
+//         };
+//         if (isOutOfRange(p.x, topLeft.x + r, bottomRight.x - r)) {
+//             Point vector = ball.getVelocity().vector();
+//             vector.x = -vector.x;
+//             ball.setVelocity(vector);
+
+//             // Создание частиц при столкновении со стеной
+//             for (int i = 0; i < 5; i++) {
+//                 double angle = (i * 2 * M_PI / 5); // Разделяем угол на 5 частей
+//                 Velocity particleVelocity(800, angle); // Скорость больше, чем у шара
+//                 Dust dust(particleVelocity, p, r / 5, Color(0, 1, 0), 0.05); // Установка скорости и времени жизни
+//                 dusts.push_back(dust);
+//             }
+//         } else if (isOutOfRange(p.y, topLeft.y + r, bottomRight.y - r)) {
+//             Point vector = ball.getVelocity().vector();
+//             vector.y = -vector.y;
+//             ball.setVelocity(vector);
+
+//             // Создание частиц при столкновении со стеной
+//             for (int i = 0; i < 5; i++) {
+//                 double angle = (i * 2 * M_PI / 5); // Разделяем угол на 5 частей
+//                 Velocity particleVelocity(800, angle); // Скорость больше, чем у шара
+//                 Dust dust(particleVelocity, p, r / 5, Color(1, 0, 0), 0.05); // Установка скорости и времени жизни
+//                 dusts.push_back(dust);
+//             }
+//         }
+//     }
+// }
 
 void Physics::move(std::vector<Ball>& balls) const {
     for (Ball& ball : balls) {
