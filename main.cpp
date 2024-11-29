@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <fstream>
-#include <regex>
+#include <boost/regex.hpp> // регулярные выражения для обработки строк
 #include <set> // Для хранения дубликатов
 
 namespace fs = std::filesystem;
@@ -29,10 +29,10 @@ std::vector<uint32_t> file_processing(const fs::path& filePath, size_t blockSize
 
     std::string buffer(blockSize, '\0'); // Буфер для чтения блоков
 
-    while (file.read(&buffer[0], blockSize) || file.gcount() > 0) {
+    while (file.read(&buffer[0], blockSize) || file.gcount() > 0) { // чтение данных из файла блоками
         // Урезаем буфер до фактического размера прочитанных данных
-        size_t bytesRead = static_cast<size_t>(file.gcount());
-        buffer.resize(bytesRead);
+        size_t bytesRead = static_cast<size_t>(file.gcount()); // количество прочитанных байтов
+        buffer.resize(bytesRead); // обновление размера буфера до количества прочитанных байтов
         
         // Дополняем до размера блока нулями
         if (bytesRead < blockSize) {
@@ -58,7 +58,7 @@ bool compare_hashes(const std::vector<uint32_t>& hashes1, const std::vector<uint
     return true; // Файлы идентичны
 }
 
-void shouldProcessFile(const fs::directory_entry& entry, const std::vector<fs::path>& exclusions, size_t minSize, const std::regex& maskRegex, size_t blockSize, std::vector<std::pair<fs::path, std::vector<uint32_t>>>& hashVector) {
+void shouldProcessFile(const fs::directory_entry& entry, const std::vector<fs::path>& exclusions, size_t minSize, const boost::regex& maskRegex, size_t blockSize, std::vector<std::pair<fs::path, std::vector<uint32_t>>>& hashVector) {
     if (entry.is_regular_file()) {  // Проверяем, является ли это обычным файлом
         // Проверка на исключения. если родительская директория в списке исключений, пропускаем файл
         if (std::find(exclusions.begin(), exclusions.end(), entry.path().parent_path()) != exclusions.end()) {
@@ -71,7 +71,7 @@ void shouldProcessFile(const fs::directory_entry& entry, const std::vector<fs::p
         }
 
         // Проверка маски имени файла
-        if (!std::regex_match(entry.path().filename().string(), maskRegex)) {
+        if (!boost::regex_match(entry.path().filename().string(), maskRegex)) {
             return;
         }
         auto hashes = file_processing(entry.path(), blockSize); // Получаем хэши файла по блокам
@@ -90,7 +90,7 @@ void shouldProcessFile(const fs::directory_entry& entry, const std::vector<fs::p
 }
 
 // Функция для поиска дубликатов
-void find_duplicates(const std::vector<fs::path>& directories, const std::vector<fs::path>& exclusions, size_t blockSize, size_t minSize, std::regex& maskRegex, int scanLevel) {
+void find_duplicates(const std::vector<fs::path>& directories, const std::vector<fs::path>& exclusions, size_t blockSize, size_t minSize, boost::regex& maskRegex, int scanLevel) {
     std::unordered_map<std::string, std::set<fs::path>> hashMap; // Словарь для хранения путей дубликатов
     std::vector<std::pair<fs::path, std::vector<uint32_t>>> hashVector; // Вектор для хранения всех обработанных файлов и их хэшей
 
@@ -117,7 +117,7 @@ void find_duplicates(const std::vector<fs::path>& directories, const std::vector
     for (size_t i = 0; i < hashVector.size(); ++i) {
         for (size_t j = i + 1; j < hashVector.size(); ++j) {
             if (compare_hashes(hashVector[i].second, hashVector[j].second)) {  // Если файлы идентичны по хэшам
-                std::string hashKey(reinterpret_cast<const char*>(hashVector[i].second.data()), hashVector[i].second.size() * sizeof(uint32_t));
+                std::string hashKey(reinterpret_cast<const char*>(hashVector[i].second.data()), hashVector[i].second.size() * sizeof(uint32_t)); // последовательность байтов из вектора хэшей
                 hashMap[hashKey].insert(hashVector[i].first);
                 hashMap[hashKey].insert(hashVector[j].first);
             }
@@ -187,10 +187,10 @@ int main() {
     std::cin >> maskString;
 
     // Преобразуем маску в регулярное выражение
-    std::regex star_regex("\\*");
-    std::regex question_regex("\\?");
-    maskString = "^" + std::regex_replace(maskString, star_regex, ".*"); // Заменяем * на .*
-    maskString = std::regex_replace(maskString, question_regex, "."); // Заменяем ? на .
+    boost::regex star_regex("\\*");
+    boost::regex question_regex("\\?");
+    maskString = "^" + boost::regex_replace(maskString, star_regex, ".*"); // Заменяем * на .*
+    maskString = boost::regex_replace(maskString, question_regex, "."); // Заменяем ? на .
     maskString += "$"; // Добавляем конец строки
 
     std::cout << "Регулярное выражение: " << maskString << std::endl;
@@ -210,11 +210,11 @@ int main() {
     }
 
     try {
-        std::regex maskRegex(maskString, std::regex_constants::icase); // Игнорируем регистр
+        boost::regex maskRegex(maskString, boost::regex_constants::icase); // Игнорируем регистр
 
         find_duplicates(directories, exclusions, blockSize, minSize, maskRegex, scanLevel);
         
-    } catch (const std::regex_error& e) {
+    } catch (const boost::regex_error& e) {
         std::cerr << "Ошибка в регулярном выражении: " << e.what() << '\n';
         return 1;
     }
@@ -319,9 +319,9 @@ int main() {
 
 
 //     try {
-//         std::regex maskRegex(maskString, std::regex_constants::icase);
+//         boost::regex maskRegex(maskString, boost::regex_constants::icase);
 //         find_duplicates(directories, exclusions, blockSize, minSize, maskRegex, scanLevel);
-//     } catch (const std::regex_error& e) {
+//     } catch (const boost::regex_error& e) {
 //         std::cerr << "Ошибка в регулярном выражении: " << e.what() << '\n';
 //         return 1;
 //     }
