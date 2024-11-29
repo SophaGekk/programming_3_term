@@ -6,7 +6,8 @@
 #include <unordered_map>
 #include <algorithm>
 #include <fstream>
-#include <boost/regex.hpp> // регулярные выражения для обработки строк
+#include <regex>
+// #include <boost/regex.hpp> // регулярные выражения для обработки строк
 #include <set> // Для хранения дубликатов
 
 namespace fs = std::filesystem;
@@ -58,7 +59,7 @@ bool compare_hashes(const std::vector<uint32_t>& hashes1, const std::vector<uint
     return true; // Файлы идентичны
 }
 
-void shouldProcessFile(const fs::directory_entry& entry, const std::vector<fs::path>& exclusions, size_t minSize, const boost::regex& maskRegex, size_t blockSize, std::vector<std::pair<fs::path, std::vector<uint32_t>>>& hashVector) {
+void shouldProcessFile(const fs::directory_entry& entry, const std::vector<fs::path>& exclusions, size_t minSize, const std::regex& maskRegex, size_t blockSize, std::vector<std::pair<fs::path, std::vector<uint32_t>>>& hashVector) {
     if (entry.is_regular_file()) {  // Проверяем, является ли это обычным файлом
         // Проверка на исключения. если родительская директория в списке исключений, пропускаем файл
         if (std::find(exclusions.begin(), exclusions.end(), entry.path().parent_path()) != exclusions.end()) {
@@ -71,7 +72,7 @@ void shouldProcessFile(const fs::directory_entry& entry, const std::vector<fs::p
         }
 
         // Проверка маски имени файла
-        if (!boost::regex_match(entry.path().filename().string(), maskRegex)) {
+        if (!std::regex_match(entry.path().filename().string(), maskRegex)) {
             return;
         }
         auto hashes = file_processing(entry.path(), blockSize); // Получаем хэши файла по блокам
@@ -90,7 +91,7 @@ void shouldProcessFile(const fs::directory_entry& entry, const std::vector<fs::p
 }
 
 // Функция для поиска дубликатов
-void find_duplicates(const std::vector<fs::path>& directories, const std::vector<fs::path>& exclusions, size_t blockSize, size_t minSize, boost::regex& maskRegex, int scanLevel) {
+void find_duplicates(const std::vector<fs::path>& directories, const std::vector<fs::path>& exclusions, size_t blockSize, size_t minSize, std::regex& maskRegex, int scanLevel) {
     std::unordered_map<std::string, std::set<fs::path>> hashMap; // Словарь для хранения путей дубликатов
     std::vector<std::pair<fs::path, std::vector<uint32_t>>> hashVector; // Вектор для хранения всех обработанных файлов и их хэшей
 
@@ -187,10 +188,10 @@ int main() {
     std::cin >> maskString;
 
     // Преобразуем маску в регулярное выражение
-    boost::regex star_regex("\\*");
-    boost::regex question_regex("\\?");
-    maskString = "^" + boost::regex_replace(maskString, star_regex, ".*"); // Заменяем * на .*
-    maskString = boost::regex_replace(maskString, question_regex, "."); // Заменяем ? на .
+    std::regex star_regex("\\*");
+    std::regex question_regex("\\?");
+    maskString = "^" + std::regex_replace(maskString, star_regex, ".*"); // Заменяем * на .*
+    maskString = std::regex_replace(maskString, question_regex, "."); // Заменяем ? на .
     maskString += "$"; // Добавляем конец строки
 
     std::cout << "Регулярное выражение: " << maskString << std::endl;
@@ -210,11 +211,11 @@ int main() {
     }
 
     try {
-        boost::regex maskRegex(maskString, boost::regex_constants::icase); // Игнорируем регистр
+        std::regex maskRegex(maskString, std::regex_constants::icase); // Игнорируем регистр
 
         find_duplicates(directories, exclusions, blockSize, minSize, maskRegex, scanLevel);
         
-    } catch (const boost::regex_error& e) {
+    } catch (const std::regex_error& e) {
         std::cerr << "Ошибка в регулярном выражении: " << e.what() << '\n';
         return 1;
     }
@@ -319,9 +320,9 @@ int main() {
 
 
 //     try {
-//         boost::regex maskRegex(maskString, boost::regex_constants::icase);
+//         std::regex maskRegex(maskString, std::regex_constants::icase);
 //         find_duplicates(directories, exclusions, blockSize, minSize, maskRegex, scanLevel);
-//     } catch (const boost::regex_error& e) {
+//     } catch (const std::regex_error& e) {
 //         std::cerr << "Ошибка в регулярном выражении: " << e.what() << '\n';
 //         return 1;
 //     }
